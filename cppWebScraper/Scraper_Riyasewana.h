@@ -3,7 +3,7 @@
 class Scraper_Riyasewana : public Scraper_Base
 {
 protected:
-	std::tuple<std::vector<std::string>, std::string> readClassifiedListPage(const std::string& aUrl) override;
+	void readClassifiedListPage(const std::string& aUrl, std::vector<std::string>& aListOfUrl, std::string& nextPage) override;
 
 
 public:

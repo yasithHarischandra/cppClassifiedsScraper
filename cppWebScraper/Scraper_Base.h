@@ -23,7 +23,7 @@ protected:
 
 	std::chrono::year_month_day getLatestSavedClassifiedDate();
 
-	virtual std::tuple<std::vector<std::string>, std::string> readClassifiedListPage(const std::string& aUrl) = 0;
+	virtual void readClassifiedListPage(const std::string& aUrl, std::vector<std::string>& aListOfUrl, std::string& nextPage) = 0;
 
 public:
 	virtual void ReadSiteFrontToBack() = 0;

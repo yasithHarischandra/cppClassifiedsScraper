@@ -7,7 +7,7 @@
 
 
 
-std::tuple<std::vector<std::string>, std::string> Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl)
+void Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl, std::vector<std::string>& aListOfUrl, std::string& nextPage)
 {
 	spdlog::info("Starting - " + aUrl);
 
@@ -19,18 +19,17 @@ std::tuple<std::vector<std::string>, std::string> Scraper_Riyasewana::readClassi
 	htmlDocPtr doc = htmlReadMemory(response.text.c_str(), (int)response.text.length(), nullptr, nullptr, HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
 	if (doc == NULL) {
 		spdlog::error("Error parsing the HTML content\n");
-		return { std::vector<std::string>(),""};
+		return;
 	}
 	// set the libxml2 context to the current document
 	xmlXPathContextPtr context = xmlXPathNewContext(doc);
 	if (context == NULL) {
 		spdlog::error("Error creating XPath context\n");
-		return { std::vector<std::string>(),"" };
+		return;
 	}
 
 	xmlXPathObjectPtr classified_elements = xmlXPathEvalExpression((xmlChar*)"//li[contains(@class, 'item round')]", context);
 
-	std::vector<std::string> aListOfUrl;
 	for (int i = 0; i < classified_elements->nodesetval->nodeNr; ++i)
 	{
 		// get the current element of the loop
@@ -59,10 +58,9 @@ std::tuple<std::vector<std::string>, std::string> Scraper_Riyasewana::readClassi
 		
 		xmlXPathFreeContext(context);
 		xmlFreeDoc(doc);
-		return { std::vector<std::string>(),"" };
+		return;
 	}
 
-	std::string nextPage = "";
 	xmlNodePtr nextPageUrlElement = nextPageElement->nodesetval->nodeTab[0];
 	nextPage = "https:" + std::string(reinterpret_cast<char*>(xmlGetProp(nextPageUrlElement, (xmlChar*)"href")));
 	
@@ -72,8 +70,7 @@ std::tuple<std::vector<std::string>, std::string> Scraper_Riyasewana::readClassi
 	
 	xmlXPathFreeContext(context);
 	xmlFreeDoc(doc);
-	std::tuple < std::vector<std::string>, std::string> result{ aListOfUrl, nextPage };
-	return result;
+	return;
 }
 
 Scraper_Riyasewana::Scraper_Riyasewana() : Scraper_Base(std::string{ "https://riyasewana.com/search" })
@@ -83,5 +80,7 @@ Scraper_Riyasewana::Scraper_Riyasewana() : Scraper_Base(std::string{ "https://ri
 
 void Scraper_Riyasewana::ReadSiteFrontToBack()
 {
-	readClassifiedListPage(myStartPage);
+	std::string nextPage = myStartPage;
+	std::vector<std::string> urlListOfClassifieds;
+	readClassifiedListPage(myStartPage, urlListOfClassifieds, nextPage);
 }
