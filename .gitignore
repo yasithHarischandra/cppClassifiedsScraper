@@ -33,3 +33,6 @@
 scraper
 
 .vscode/
+*.sln
+/cppWebScraper/.vs/cppWebScraper
+/cppWebScraper/x64/Debug
