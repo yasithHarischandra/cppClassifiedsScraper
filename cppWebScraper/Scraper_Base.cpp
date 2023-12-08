@@ -9,3 +9,8 @@ std::chrono::year_month_day Scraper_Base::getLatestSavedClassifiedDate()
 {
 	return std::chrono::year_month_day();
 }
+
+Scraper_Base::Scraper_Base(std::string aUrl) : myStartPage(aUrl)
+{
+	 
+}

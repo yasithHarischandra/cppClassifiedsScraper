@@ -10,6 +10,9 @@
 #include <chrono>
 #include <tuple>
 #include <vector>
+#include <memory>
+
+#include "Classified_Base.h"
 
 class Scraper_Base
 {
@@ -19,14 +22,20 @@ protected:
 	//starting page of the site to be scraped.
 	std::string myStartPage;
 
+	
+
 	std::chrono::year_month_day getYesterdayDate();
 
 	std::chrono::year_month_day getLatestSavedClassifiedDate();
 
 	virtual void readClassifiedListPage(const std::string& aUrl, std::vector<std::string>& aListOfUrl, std::string& nextPage) = 0;
 
+	virtual std::unique_ptr<Classified_Base> readSingleClassifiedPage(const std::string& aUrl) = 0;
+
 public:
 	virtual void ReadSiteFrontToBack() = 0;
-	Scraper_Base(std::string aUrl) : myStartPage(aUrl) {};
+	Scraper_Base(std::string aUrl);
+
+	
 };
 

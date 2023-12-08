@@ -24,12 +24,30 @@
     <ClCompile Include="Scraper_Riyasewana.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Classified_Base.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classified_Vehicle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scraper_WebPageLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scraper_Base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Scraper_Riyasewana.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classified_Base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classified_Vehicle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scraper_WebPageLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -128,13 +128,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Classified_Base.cpp" />
+    <ClCompile Include="Classified_Vehicle.cpp" />
     <ClCompile Include="cppWebScraper.cpp" />
     <ClCompile Include="Scraper_Base.cpp" />
     <ClCompile Include="Scraper_Riyasewana.cpp" />
+    <ClCompile Include="Scraper_WebPageLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Classified_Base.h" />
+    <ClInclude Include="Classified_Vehicle.h" />
     <ClInclude Include="Scraper_Base.h" />
     <ClInclude Include="Scraper_Riyasewana.h" />
+    <ClInclude Include="Scraper_WebPageLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
