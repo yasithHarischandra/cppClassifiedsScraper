@@ -9,6 +9,7 @@ protected:
 
 	std::string getCityFromTitle(const std::string& aTitle);
 	std::chrono::year_month_day getDateFromTitle(const std::string& aTitle);
+	std::string getVehicleType(const std::string& aTitle);
 
 public:
 	Scraper_Riyasewana();

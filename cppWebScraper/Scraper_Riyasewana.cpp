@@ -92,7 +92,7 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	///////////////
 
 	//////////////////traverse through properties table
-	std::string contactNo, price, Make, Model, YoM, mileage, gear, fuelType, options, engineCapacity;
+	std::string contactNo, price, Make, Model, yomStr, mileageStr, gear, fuelType, options, engineCapacity;
 	std::string details, startType;
 	xmlXPathObjectPtr tableRowNodes = xmlXPathEvalExpression((xmlChar*)"//tr", context);
 	for (int i = 0; i < tableRowNodes->nodesetval->nodeNr; ++i)
@@ -127,8 +127,8 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 		else if (std::string(reinterpret_cast<char*>(xmlNodeGetContent(firstColumn))) == "YOM")
 		{
 			xmlXPathObjectPtr values = xmlXPathEvalExpression((xmlChar*)".//td", context);
-			YoM = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[1])));
-			mileage = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[3])));
+			yomStr = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[1])));
+			mileageStr = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[3])));
 			xmlXPathFreeObject(values);
 		}
 		else if (std::string(reinterpret_cast<char*>(xmlNodeGetContent(firstColumn))) == "Gear")
@@ -171,8 +171,16 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 
 	std::string city = getCityFromTitle(pageSubTitle);
 	std::chrono::year_month_day date = getDateFromTitle(pageSubTitle);
+	std::string vehicleType = getVehicleType(pageMainTitle);
+	int yom, mileage;
+	if (!convertFromStringToInt(yomStr, yom))
+		return nullptr;
+	if (!convertFromStringToInt(mileageStr, mileage))
+		return nullptr;
 
-	return std::unique_ptr<Classified_Base>();
+	std::unique_ptr<Classified_Base> classifiedPtr = std::make_unique<Classified_Vehicle>(price, city, contactNo, details, aUrl, date, Make, Model, yom, mileage, gear, fuelType, vehicleType, startType, options);
+
+	return classifiedPtr;
 }
 
 std::string Scraper_Riyasewana::getCityFromTitle(const std::string& aTitle)
@@ -211,8 +219,68 @@ std::chrono::year_month_day Scraper_Riyasewana::getDateFromTitle(const std::stri
 	else {
 		// No match found
 		spdlog::error("Could not extract date from title - " + aTitle);
+		throw std::invalid_argument("Could not find a valid date in string - " + aTitle);
 	}
 	return date;
+}
+
+std::string Scraper_Riyasewana::getVehicleType(const std::string& aTitle)
+{
+	std::string vType = "";
+	if (aTitle.find(" Heavy-Duty ") != std::string::npos)
+	{
+		vType = "heavyduty";
+	}
+	else if (aTitle.find(" Lorry ") != std::string::npos)
+	{
+		vType = "lorry";
+	}
+	else if (aTitle.find(" Motorbike ") != std::string::npos)
+	{
+		vType = "motorbike";
+	}
+	else if (aTitle.find(" Three Wheel ") != std::string::npos)
+	{
+		vType = "threewheel";
+	}
+	else if (aTitle.find(" Van ") != std::string::npos)
+	{
+		vType = "van";
+	}
+	else if (aTitle.find(" SUV ") != std::string::npos)
+	{
+		vType = "suv";
+	}
+	else if (aTitle.find(" Crew Cab ") != std::string::npos)
+	{
+		vType = "crewcab";
+	}
+	else if (aTitle.find(" Pickup ") != std::string::npos)
+	{
+		vType = "pickup";
+	}
+	else if (aTitle.find(" Bus ") != std::string::npos)
+	{
+		vType = "bus";
+	}
+	else if (aTitle.find(" Bicycle ") != std::string::npos)
+	{
+		vType = "bicycle";
+	}
+	else if (aTitle.find(" Car ") != std::string::npos)
+	{
+		vType = "car";
+	}
+	else if (aTitle.find(" Other ") != std::string::npos)
+	{
+		vType = "other";
+	}
+	else
+	{
+		vType = "other";
+	}
+	
+	return vType;
 }
 
 Scraper_Riyasewana::Scraper_Riyasewana() : Scraper_Base(std::string{ "https://riyasewana.com/search" })
