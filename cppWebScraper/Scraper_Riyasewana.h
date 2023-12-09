@@ -8,6 +8,7 @@ protected:
 	std::unique_ptr<Classified_Base> readSingleClassifiedPage(const std::string& aUrl) override;
 
 	std::string getCityFromTitle(const std::string& aTitle);
+	std::chrono::year_month_day getDateFromTitle(const std::string& aTitle);
 
 public:
 	Scraper_Riyasewana();

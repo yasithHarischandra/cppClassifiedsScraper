@@ -7,6 +7,7 @@
 #include "libxml/xpath.h"
 
 #include <sstream>
+#include <regex>
 
 void Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl, std::vector<std::string>& aListOfUrl, std::string& nextPage)
 {
@@ -92,7 +93,7 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 
 	//////////////////traverse through properties table
 	std::string contactNo, price, Make, Model, YoM, mileage, gear, fuelType, options, engineCapacity;
-	std::string details, startType, city;
+	std::string details, startType;
 	xmlXPathObjectPtr tableRowNodes = xmlXPathEvalExpression((xmlChar*)"//tr", context);
 	for (int i = 0; i < tableRowNodes->nodesetval->nodeNr; ++i)
 	{
@@ -168,7 +169,8 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 
 	}
 
-	city = getCityFromTitle(pageSubTitle);
+	std::string city = getCityFromTitle(pageSubTitle);
+	std::chrono::year_month_day date = getDateFromTitle(pageSubTitle);
 
 	return std::unique_ptr<Classified_Base>();
 }
@@ -185,6 +187,32 @@ std::string Scraper_Riyasewana::getCityFromTitle(const std::string& aTitle)
 		v.push_back(s);
 	}
 	return v.back().erase(0, 1);	//remove space at the start
+}
+
+std::chrono::year_month_day Scraper_Riyasewana::getDateFromTitle(const std::string& aTitle)
+{
+	std::chrono::year_month_day date;
+
+	// Define the regular expression pattern to match the date
+	std::regex pattern("\\b\\d{4}-\\d{2}-\\d{2}\\b");
+
+	// Search for matches in the input string
+	std::smatch match;
+	if (std::regex_search(aTitle, match, pattern)) 
+	{
+		std::string s;
+		std::stringstream ss(match[0]);
+		std::vector<std::string> v;
+		while (getline(ss, s, '-'))
+			// store token string in the vector
+			v.push_back(s);
+		date = std::chrono::year_month_day(static_cast<std::chrono::year>(atoi(v[0].c_str())), static_cast<std::chrono::month>(atoi(v[1].c_str())), static_cast<std::chrono::day>(atoi(v[2].c_str())) );
+	}
+	else {
+		// No match found
+		spdlog::error("Could not extract date from title - " + aTitle);
+	}
+	return date;
 }
 
 Scraper_Riyasewana::Scraper_Riyasewana() : Scraper_Base(std::string{ "https://riyasewana.com/search" })
