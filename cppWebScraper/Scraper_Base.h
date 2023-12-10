@@ -34,6 +34,8 @@ protected:
 
 	bool convertFromStringToInt(const std::string& aString, int& anInt);
 
+	bool saveAClassified(const Classified_Base* aclassified);
+
 public:
 	virtual void ReadSiteFrontToBack() = 0;
 	Scraper_Base(std::string aUrl);

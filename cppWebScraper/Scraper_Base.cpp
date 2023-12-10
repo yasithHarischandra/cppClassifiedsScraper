@@ -46,6 +46,11 @@ bool Scraper_Base::convertFromStringToInt(const std::string& aString, int& anInt
 	return true;
 }
 
+bool Scraper_Base::saveAClassified(const Classified_Base* aclassified)
+{
+    return true;
+}
+
 Scraper_Base::Scraper_Base(std::string aUrl) : myStartPage(aUrl)
 {
 	 
