@@ -19,6 +19,7 @@ protected:
 
 public:
 	Persistance_Base(const std::string aConfigFileName, std::string aDataSourceType);
+	Persistance_Base() = delete;
 	//check if data source is already open
 	bool IsOpen();
 };
