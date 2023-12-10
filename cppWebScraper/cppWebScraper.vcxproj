@@ -131,6 +131,7 @@
     <ClCompile Include="Classified_Base.cpp" />
     <ClCompile Include="Classified_Vehicle.cpp" />
     <ClCompile Include="cppWebScraper.cpp" />
+    <ClCompile Include="Persistance_Base.cpp" />
     <ClCompile Include="Scraper_Base.cpp" />
     <ClCompile Include="Scraper_Riyasewana.cpp" />
     <ClCompile Include="Scraper_WebPageLoader.cpp" />
@@ -138,6 +139,7 @@
   <ItemGroup>
     <ClInclude Include="Classified_Base.h" />
     <ClInclude Include="Classified_Vehicle.h" />
+    <ClInclude Include="Persistance_Base.h" />
     <ClInclude Include="Scraper_Base.h" />
     <ClInclude Include="Scraper_Riyasewana.h" />
     <ClInclude Include="Scraper_WebPageLoader.h" />
