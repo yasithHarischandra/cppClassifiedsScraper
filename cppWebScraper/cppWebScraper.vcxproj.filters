@@ -36,6 +36,12 @@
     <ClCompile Include="Persistance_Base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Persistance_Database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Persistance_Postgresql.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scraper_Base.h">
@@ -54,6 +60,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Persistance_Base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Persistance_Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Persistance_Postgresql.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
