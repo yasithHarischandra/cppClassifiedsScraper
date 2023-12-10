@@ -7,6 +7,8 @@ protected:
 
 	std::unique_ptr<Classified_Base> readSingleClassifiedPage(const std::string& aUrl) override;
 
+	//the sub string after the last comma is taken as the city
+	//if no city is found, throws std::invalid_argument.
 	std::string getCityFromTitle(const std::string& aTitle);
 	std::chrono::year_month_day getDateFromTitle(const std::string& aTitle);
 	std::string getVehicleType(const std::string& aTitle);

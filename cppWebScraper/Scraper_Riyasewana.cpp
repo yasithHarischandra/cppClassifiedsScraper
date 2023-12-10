@@ -11,7 +11,7 @@
 
 void Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl, std::vector<std::string>& aListOfUrl, std::string& nextPage)
 {
-	spdlog::info("Starting List Page - " + aUrl);
+	spdlog::info("Reading List Page - " + aUrl);
 
 	Scraper_WebPageLoader pageLoader(aUrl);
 	if (!pageLoader.GetLoadStatus())
@@ -46,7 +46,7 @@ void Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl, std::ve
 	xmlXPathObjectPtr nextPageElement = xmlXPathEvalExpression((xmlChar*)"//a[text()='Next']", context);
 	if (nextPageElement == NULL)
 	{
-		spdlog::info("No next page found\n");
+		spdlog::error("No next page found\n");
 		return;
 	}
 
@@ -60,11 +60,14 @@ void Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl, std::ve
 
 std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(const std::string& aUrl)
 {
-	spdlog::info("Starting List Page - " + aUrl);
+	spdlog::info("Reading classified Page - " + aUrl);
 
 	Scraper_WebPageLoader pageLoader(aUrl);
 	if (!pageLoader.GetLoadStatus())
+	{
+		spdlog::error("Failed opening web page - " + aUrl);
 		return nullptr;
+	}
 
 	auto doc = pageLoader.GetDoc();
 	auto context = pageLoader.GetContext();
@@ -74,7 +77,7 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	xmlXPathObjectPtr titleDivNode = xmlXPathEvalExpression((xmlChar*)"//div[contains(@id, 'content')]", context);
 	if (titleDivNode == NULL)
 	{
-		spdlog::info("Page title not found\n");
+		spdlog::error("Page title not found\n");
 		return nullptr;
 	}
 	// get the current element of the loop
@@ -170,13 +173,25 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	}
 
 	std::string city = getCityFromTitle(pageSubTitle);
+	if (city == "")
+	{
+		spdlog::error("Error reading city from title - " + pageSubTitle);
+		return nullptr;
+	}
 	std::chrono::year_month_day date = getDateFromTitle(pageSubTitle);
 	std::string vehicleType = getVehicleType(pageMainTitle);
 	int yom, mileage;
 	if (!convertFromStringToInt(yomStr, yom))
+	{
+		spdlog::error("Error converting YOM to integer - " + yomStr);
 		return nullptr;
+	}
+		
 	if (!convertFromStringToInt(mileageStr, mileage))
+	{
+		spdlog::error("Error converting mileage to integer - " + mileageStr);
 		return nullptr;
+	}
 
 	std::unique_ptr<Classified_Base> classifiedPtr = std::make_unique<Classified_Vehicle>(price, city, contactNo, details, aUrl, date, Make, Model, yom, mileage, gear, fuelType, vehicleType, startType, options);
 
@@ -194,6 +209,9 @@ std::string Scraper_Riyasewana::getCityFromTitle(const std::string& aTitle)
 		// store token string in the vector
 		v.push_back(s);
 	}
+	if(v.empty())
+		throw std::invalid_argument("Could not find a valid city in string - " + aTitle);
+
 	return v.back().erase(0, 1);	//remove space at the start
 }
 
@@ -335,5 +353,5 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 
 	//readClassifiedListPage(myStartPage, urlListOfClassifieds, nextPage);
 	//readSingleClassifiedPage(urlListOfClassifieds[0]);
-	readSingleClassifiedPage("https://riyasewana.com/buy/bajaj-4-stroke-sale-kurunegala-7346452");
+	//readSingleClassifiedPage("https://riyasewana.com/buy/bajaj-4-stroke-sale-kurunegala-7346452");
 }
