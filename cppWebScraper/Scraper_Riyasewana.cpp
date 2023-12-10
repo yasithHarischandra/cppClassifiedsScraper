@@ -290,8 +290,49 @@ Scraper_Riyasewana::Scraper_Riyasewana() : Scraper_Base(std::string{ "https://ri
 
 void Scraper_Riyasewana::ReadSiteFrontToBack()
 {
+	auto yesterday = getYesterdayDate();
+	auto lastClassifiedDay = getLatestSavedClassifiedDate();
+
+	std::string currentPage = myStartPage;
 	std::string nextPage = myStartPage;
-	std::vector<std::string> urlListOfClassifieds;
+	
+
+	while (nextPage != "")
+	{
+		std::vector<std::string> urlListOfClassifieds;
+		std::vector < std::shared_ptr<Classified_Base> > classifiedData;
+		bool reachedDataSource = false;
+		readClassifiedListPage(currentPage, urlListOfClassifieds, nextPage);
+
+		
+		for (auto aUrl : urlListOfClassifieds)
+		{
+			std::shared_ptr<Classified_Base> aClassified = readSingleClassifiedPage(aUrl);
+
+			//skip classifieds newer than yesterday
+			if (aClassified->GetDate() > yesterday)
+				continue;
+
+			//no need to go through classifieds already in database
+			if (aClassified->GetDate() <= lastClassifiedDay)
+			{
+				spdlog::info("Finished reading classifieds from riyasewana.com.");
+				reachedDataSource = true;
+				break;
+			}
+
+			classifiedData.push_back(aClassified);
+		}
+
+		while (!classifiedData.empty())
+		{
+			saveAClassified(classifiedData.back().get());
+			classifiedData.pop_back();
+		}
+		
+	}
+
+
 	//readClassifiedListPage(myStartPage, urlListOfClassifieds, nextPage);
 	//readSingleClassifiedPage(urlListOfClassifieds[0]);
 	readSingleClassifiedPage("https://riyasewana.com/buy/bajaj-4-stroke-sale-kurunegala-7346452");
