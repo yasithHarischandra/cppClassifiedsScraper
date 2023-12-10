@@ -28,6 +28,8 @@ public:
 		myPrice(aPrice), myCity(aCity), myContactNo(aContactNo), myDetails(details), myUrl(aUrl), myDate(aDate) {};
 	~Classified_Base() {};
 
+	std::chrono::year_month_day GetDate() { return myDate; };
+
 	virtual std::vector<ClassifiedTableData> GetProperties() = 0;
 };
 
