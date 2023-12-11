@@ -13,12 +13,12 @@ void Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl, std::ve
 {
 	spdlog::info("Reading List Page - " + aUrl);
 
-	Scraper_WebPageLoader pageLoader(aUrl);
+	Scraper_WebPageLoader pageLoader{ aUrl };
 	if (!pageLoader.GetLoadStatus())
 		return;
 
-	auto doc = pageLoader.GetDoc();
-	auto context = pageLoader.GetContext();
+	auto doc{ pageLoader.GetDoc() };
+	auto context{ pageLoader.GetContext() };
 
 	xmlXPathObjectPtr classified_elements = xmlXPathEvalExpression((xmlChar*)"//li[contains(@class, 'item round')]", context);
 
@@ -62,15 +62,15 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 {
 	spdlog::info("Reading classified Page - " + aUrl);
 
-	Scraper_WebPageLoader pageLoader(aUrl);
+	Scraper_WebPageLoader pageLoader{ aUrl };
 	if (!pageLoader.GetLoadStatus())
 	{
 		spdlog::error("Failed opening web page - " + aUrl);
 		return nullptr;
 	}
 
-	auto doc = pageLoader.GetDoc();
-	auto context = pageLoader.GetContext();
+	auto doc{ pageLoader.GetDoc() };
+	auto context{ pageLoader.GetContext() };
 
 
 	///////////////find the titles of the page
@@ -172,14 +172,14 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 
 	}
 
-	std::string city = getCityFromTitle(pageSubTitle);
+	std::string city{ getCityFromTitle(pageSubTitle) };
 	if (city == "")
 	{
 		spdlog::error("Error reading city from title - " + pageSubTitle);
 		return nullptr;
 	}
-	std::chrono::year_month_day date = getDateFromTitle(pageSubTitle);
-	std::string vehicleType = getVehicleType(pageMainTitle);
+	std::chrono::year_month_day date{ getDateFromTitle(pageSubTitle) };
+	std::string vehicleType{ getVehicleType(pageMainTitle) };
 	int yom, mileage;
 	if (!convertFromStringToInt(yomStr, yom))
 	{
@@ -202,7 +202,7 @@ std::string Scraper_Riyasewana::getCityFromTitle(const std::string& aTitle)
 {
 	//city name is aftere the last comma,
 	std::string s;
-	std::stringstream ss(aTitle);
+	std::stringstream ss{ aTitle };
 	std::vector<std::string> v;
 	while (getline(ss, s, ',')) {
 
@@ -227,7 +227,7 @@ std::chrono::year_month_day Scraper_Riyasewana::getDateFromTitle(const std::stri
 	if (std::regex_search(aTitle, match, pattern)) 
 	{
 		std::string s;
-		std::stringstream ss(match[0]);
+		std::stringstream ss{ match[0] };
 		std::vector<std::string> v;
 		while (getline(ss, s, '-'))
 			// store token string in the vector
@@ -244,7 +244,7 @@ std::chrono::year_month_day Scraper_Riyasewana::getDateFromTitle(const std::stri
 
 std::string Scraper_Riyasewana::getVehicleType(const std::string& aTitle)
 {
-	std::string vType = "";
+	std::string vType{ "" };
 	if (aTitle.find(" Heavy-Duty ") != std::string::npos)
 	{
 		vType = "heavyduty";
@@ -311,8 +311,8 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 	auto yesterday = getYesterdayDate();
 	auto lastClassifiedDay = getLatestSavedClassifiedDate();
 
-	std::string currentPage = myStartPage;
-	std::string nextPage = myStartPage;
+	std::string currentPage{ myStartPage };
+	std::string nextPage{ myStartPage };
 	
 
 	while (nextPage != "")
