@@ -36,3 +36,4 @@ scraper
 *.sln
 /cppWebScraper/.vs/cppWebScraper
 /cppWebScraper/x64/Debug
+/cppWebScraper/database.ini
