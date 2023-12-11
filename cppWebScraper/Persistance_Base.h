@@ -1,25 +1,22 @@
 #pragma once
 
 #include <string>
+#include <map>
+
 class Persistance_Base
 {
 protected:
 	//stores whether connected to data source successfully
 	bool myOpenStatus;
 
-	const std::string myConfigFileName;
-
-	const std::string myDataSourceType;
-
 	virtual bool openDataSource() = 0;
 
 	virtual bool closeDataSource() = 0;
 
-	virtual bool readConfigData() = 0;
+	virtual bool readConfigData(const std::string aConfigFileName, std::map<std::string, std::string>& dataSourceProperties) = 0;
 
 public:
-	Persistance_Base(const std::string aConfigFileName, std::string aDataSourceType);
-	Persistance_Base() = delete;
+	Persistance_Base();
 	//check if data source is already open
 	bool IsOpen();
 };
