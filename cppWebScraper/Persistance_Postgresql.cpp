@@ -20,8 +20,8 @@ bool Persistance_Postgresql::readConfigData(const std::string aConfigFileName, s
 
 bool Persistance_Postgresql::openDataSource(const std::map<std::string, std::string>& dataSourceProperties)
 {
-	std::string connectionStr = "dbname = " + dataSourceProperties.at("database") + " user = " + dataSourceProperties.at("user") +
-		" password = " + dataSourceProperties.at("password") + " host = " + dataSourceProperties.at("host") + " port = " + dataSourceProperties.at("port");
+	std::string connectionStr{ "dbname = " + dataSourceProperties.at("database") + " user = " + dataSourceProperties.at("user") +
+		" password = " + dataSourceProperties.at("password") + " host = " + dataSourceProperties.at("host") + " port = " + dataSourceProperties.at("port") };
 	try
 	{
 		myDB = std::make_unique<pqxx::connection>(connectionStr);
@@ -70,7 +70,7 @@ Persistance_Postgresql::Persistance_Postgresql(const std::string aConfigFileName
 	}
 
 	//Next - Open database connection
-	
+	openDataSource(dataSourceProperties);
 }
 
 Persistance_Postgresql::~Persistance_Postgresql()
