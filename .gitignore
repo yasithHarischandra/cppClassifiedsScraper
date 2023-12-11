@@ -37,3 +37,4 @@ scraper
 /cppWebScraper/.vs/cppWebScraper
 /cppWebScraper/x64/Debug
 /cppWebScraper/database.ini
+/DatabaseInfo/scraper_server_setup.txt
