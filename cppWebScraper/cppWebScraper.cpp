@@ -8,12 +8,15 @@
 #include <iostream>
 #include <memory>
 #include "Scraper_Riyasewana.h"
+#include "Persistance_Postgresql.h"
 
 int main()
 {
     //std::cout << "Hello World!\n";
-
-    std::unique_ptr aWebScraper = std::make_unique<Scraper_Riyasewana>();
+    auto aDataSource = std::make_unique<Persistance_Postgresql>("database.ini");
+    if (!aDataSource->IsOpen())
+        return -1;
+    auto aWebScraper = std::make_unique<Scraper_Riyasewana>();
 
     aWebScraper->ReadSiteFrontToBack();
 }
