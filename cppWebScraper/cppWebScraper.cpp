@@ -13,7 +13,7 @@
 int main()
 {
     //std::cout << "Hello World!\n";
-    auto aDataSource = std::make_unique<Persistance_Postgresql>("database.ini");
+    std::unique_ptr<Persistance_Base> aDataSource = std::make_unique<Persistance_Postgresql>("database.ini");
     if (!aDataSource->IsOpen())
         return -1;
     auto aWebScraper = std::make_unique<Scraper_Riyasewana>();
