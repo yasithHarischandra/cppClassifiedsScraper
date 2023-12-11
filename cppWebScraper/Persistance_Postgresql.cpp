@@ -18,14 +18,36 @@ bool Persistance_Postgresql::readConfigData(const std::string aConfigFileName, s
 	return true;
 }
 
-bool Persistance_Postgresql::openDataSource()
+bool Persistance_Postgresql::openDataSource(const std::map<std::string, std::string>& dataSourceProperties)
 {
-	return false;
+	std::string connectionStr = "dbname = " + dataSourceProperties.at("database") + " user = " + dataSourceProperties.at("user") +
+		" password = " + dataSourceProperties.at("password") + " host = " + dataSourceProperties.at("host") + " port = " + dataSourceProperties.at("port");
+	try
+	{
+		myDB = std::make_unique<pqxx::connection>(connectionStr);
+	}
+	catch (const std::exception& e)
+	{
+		spdlog::error("Failed to connect to PostgreSQL database. - " + std::string(e.what()));
+		return false;
+	}
+	if (myDB->is_open())
+		spdlog::info("Successfully connected to PostgreSQL Database.");
+	else
+		spdlog::error("Failed to connect to PostgreSQL database.");
+
+	return myDB->is_open();
 }
 
 bool Persistance_Postgresql::closeDataSource()
 {
-	return false;
+	myDB->close();
+	return myDB->is_open();
+}
+
+bool Persistance_Postgresql::IsOpen()
+{
+	return myDB->is_open();
 }
 
 Persistance_Postgresql::Persistance_Postgresql(const std::string aConfigFileName) :
@@ -38,16 +60,20 @@ Persistance_Postgresql::Persistance_Postgresql(const std::string aConfigFileName
 		if (!readConfigData(aConfigFileName, dataSourceProperties))
 		{
 			spdlog::error("Error reading data source configuration file.");
-			myOpenStatus = false;
 			return;
 		}
 	}
 	catch (const std::exception& e)
 	{
 		spdlog::error("Error reading data source configuration file. - " + std::string(e.what()));
-		myOpenStatus = false;
 		return;
 	}
 
+	//Next - Open database connection
+	
+}
 
+Persistance_Postgresql::~Persistance_Postgresql()
+{
+	closeDataSource();
 }

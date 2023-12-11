@@ -9,7 +9,7 @@ protected:
 	//stores whether connected to data source successfully
 	bool myOpenStatus;
 
-	virtual bool openDataSource() = 0;
+	virtual bool openDataSource(const std::map<std::string, std::string>& dataSourceProperties) = 0;
 
 	virtual bool closeDataSource() = 0;
 
@@ -18,6 +18,6 @@ protected:
 public:
 	Persistance_Base();
 	//check if data source is already open
-	bool IsOpen();
+	virtual bool IsOpen();
 };
 
