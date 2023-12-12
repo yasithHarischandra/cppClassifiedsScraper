@@ -1,5 +1,6 @@
 #pragma once
 #include "Persistance_Database.h"
+#include "Classified_Vehicle.h"
 
 #include <pqxx/pqxx> 
 
@@ -12,7 +13,14 @@ protected:
     bool openDataSource(const std::map<std::string, std::string>& dataSourceProperties) override;
     bool closeDataSource() override;
 
+    //database functions
+
+    //table name should be in the format "schema.table"
+    int insertRecordGetPK(const std::string anAtributeName, const std::string anAtributeValue, const std::string aTableName, const std::string aPK);
+    int numRecordsAvailable(const std::string anAtributeName, const std::string anAtributeValue, const std::string aTableName);
+    
 public:
+    std::string WriteData(const Classified_Vehicle& anAd) override;
     bool IsOpen() override;
     Persistance_Postgresql(const std::string aConfigFileName);
     ~Persistance_Postgresql();

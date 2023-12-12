@@ -10,6 +10,7 @@ std::chrono::year_month_day Scraper_Base::getYesterdayDate()
 
     // Subtract one day to get yesterday's date
     auto yesterdaySysDays = currentSysDays - std::chrono::days{ 1 };
+    //yesterdaySysDays = currentSysDays; used for testing purposes
     std::chrono::year_month_day yesterday = yesterdaySysDays;
     return yesterday;
 }
@@ -46,12 +47,7 @@ bool Scraper_Base::convertFromStringToInt(const std::string& aString, int& anInt
 	return true;
 }
 
-bool Scraper_Base::saveAClassified(const Classified_Base* aclassified)
-{
-    return true;
-}
-
-Scraper_Base::Scraper_Base(std::string aUrl) : myStartPage(aUrl)
+Scraper_Base::Scraper_Base(std::string aUrl, Persistance_Base* aDataSource) : myStartPage(aUrl), myDataSource(aDataSource)
 {
 	 
 }

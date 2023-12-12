@@ -7,6 +7,8 @@ protected:
 
 	std::unique_ptr<Classified_Base> readSingleClassifiedPage(const std::string& aUrl) override;
 
+	bool saveAClassified(const Classified_Base* aclassified) override;
+
 	//the sub string after the last comma is taken as the city
 	//if no city is found, throws std::invalid_argument.
 	std::string getCityFromTitle(const std::string& aTitle);
@@ -14,7 +16,7 @@ protected:
 	std::string getVehicleType(const std::string& aTitle);
 
 public:
-	Scraper_Riyasewana();
+	Scraper_Riyasewana(Persistance_Base* aDataSource);
 
 	void ReadSiteFrontToBack() override;
 };

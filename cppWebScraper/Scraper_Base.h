@@ -13,16 +13,16 @@
 #include <memory>
 
 #include "Classified_Base.h"
+#include "Persistance_Base.h"
 
 class Scraper_Base
 {
 protected:
 	//TODO - add data source
+	Persistance_Base* myDataSource;
 
 	//starting page of the site to be scraped.
 	std::string myStartPage;
-
-	
 
 	std::chrono::year_month_day getYesterdayDate();
 
@@ -34,11 +34,11 @@ protected:
 
 	bool convertFromStringToInt(const std::string& aString, int& anInt);
 
-	bool saveAClassified(const Classified_Base* aclassified);
+	virtual bool saveAClassified(const Classified_Base* aclassified) = 0;
 
 public:
 	virtual void ReadSiteFrontToBack() = 0;
-	Scraper_Base(std::string aUrl);
+	Scraper_Base(std::string aUrl, Persistance_Base* aDataSource);
 
 	
 };

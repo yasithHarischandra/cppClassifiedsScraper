@@ -16,7 +16,7 @@ int main()
     std::unique_ptr<Persistance_Base> aDataSource = std::make_unique<Persistance_Postgresql>("database.ini");
     if (!aDataSource->IsOpen())
         return -1;
-    auto aWebScraper = std::make_unique<Scraper_Riyasewana>();
+    auto aWebScraper = std::make_unique<Scraper_Riyasewana>(aDataSource.get());
 
     aWebScraper->ReadSiteFrontToBack();
 }

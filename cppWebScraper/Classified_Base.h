@@ -6,6 +6,8 @@
 #include <vector>
 #include <boost/any.hpp>
 
+class Persistance_Base;
+
 struct ClassifiedTableData
 {
 public:
@@ -28,8 +30,14 @@ public:
 		myPrice(aPrice), myCity(aCity), myContactNo(aContactNo), myDetails(details), myUrl(aUrl), myDate(aDate) {};
 	~Classified_Base() {};
 
-	std::chrono::year_month_day GetDate() { return myDate; };
+	std::chrono::year_month_day Date() { return myDate; };
+	std::string PriceStr() const { return myPrice; };
+	std::string DateStr() const;
+	std::string ContactNo() const { return myContactNo; };
+	std::string Details() const { return myDetails; };
 
 	virtual std::vector<ClassifiedTableData> GetProperties() = 0;
+
+	virtual std::string write(Persistance_Base* aDatasource) const = 0;	//visitor pattern
 };
 

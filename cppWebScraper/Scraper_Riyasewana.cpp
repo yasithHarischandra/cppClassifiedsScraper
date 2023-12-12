@@ -95,7 +95,7 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	///////////////
 
 	//////////////////traverse through properties table
-	std::string contactNo, price, Make, Model, yomStr, mileageStr, gear, fuelType, options, engineCapacity;
+	std::string contactNo, price, Make, Model, yomStr, mileageStr, gear, fuelType, options, engineCapacityStr;
 	std::string details, startType;
 	xmlXPathObjectPtr tableRowNodes = xmlXPathEvalExpression((xmlChar*)"//tr", context);
 	for (int i = 0; i < tableRowNodes->nodesetval->nodeNr; ++i)
@@ -145,14 +145,14 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 		{
 			xmlXPathObjectPtr values = xmlXPathEvalExpression((xmlChar*)".//td", context);
 			options = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[1])));
-			engineCapacity = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[3])));
+			engineCapacityStr = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[3])));
 			xmlXPathFreeObject(values);
 		}
 		// for motor bikes
 		else if (std::string(reinterpret_cast<char*>(xmlNodeGetContent(firstColumn))) == "Engine (cc)")
 		{
 			xmlXPathObjectPtr values = xmlXPathEvalExpression((xmlChar*)".//td", context);
-			engineCapacity = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[1])));
+			engineCapacityStr = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[1])));
 			startType = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[3])));
 			xmlXPathFreeObject(values);
 		}
@@ -180,7 +180,7 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	}
 	std::chrono::year_month_day date{ getDateFromTitle(pageSubTitle) };
 	std::string vehicleType{ getVehicleType(pageMainTitle) };
-	int yom, mileage;
+	int yom, mileage, engineCapacity;
 	if (!convertFromStringToInt(yomStr, yom))
 	{
 		spdlog::error("Error converting YOM to integer - " + yomStr);
@@ -193,9 +193,21 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 		return nullptr;
 	}
 
-	std::unique_ptr<Classified_Base> classifiedPtr = std::make_unique<Classified_Vehicle>(price, city, contactNo, details, aUrl, date, Make, Model, yom, mileage, gear, fuelType, vehicleType, startType, options);
+	if (!convertFromStringToInt(engineCapacityStr, engineCapacity))
+	{
+		spdlog::error("Error converting engine capacity to integer - " + engineCapacityStr);
+		return nullptr;
+	}
+
+	std::unique_ptr<Classified_Base> classifiedPtr = std::make_unique<Classified_Vehicle>(price, city, contactNo, details, aUrl, date, Make, Model, yom, mileage, gear, fuelType, vehicleType, startType, options, engineCapacity);
 
 	return classifiedPtr;
+}
+
+bool Scraper_Riyasewana::saveAClassified(const Classified_Base* aclassified)
+{
+	std::string msg{ aclassified->write(myDataSource) };
+	return true;;
 }
 
 std::string Scraper_Riyasewana::getCityFromTitle(const std::string& aTitle)
@@ -301,7 +313,7 @@ std::string Scraper_Riyasewana::getVehicleType(const std::string& aTitle)
 	return vType;
 }
 
-Scraper_Riyasewana::Scraper_Riyasewana() : Scraper_Base(std::string{ "https://riyasewana.com/search" })
+Scraper_Riyasewana::Scraper_Riyasewana(Persistance_Base* aDataSource) : Scraper_Base(std::string{ "https://riyasewana.com/search" }, aDataSource)
 {
 	
 }
@@ -328,11 +340,11 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 			std::shared_ptr<Classified_Base> aClassified = readSingleClassifiedPage(aUrl);
 
 			//skip classifieds newer than yesterday
-			if (aClassified->GetDate() > yesterday)
+			if (aClassified->Date() > yesterday)
 				continue;
 
 			//no need to go through classifieds already in database
-			if (aClassified->GetDate() <= lastClassifiedDay)
+			if (aClassified->Date() <= lastClassifiedDay)
 			{
 				spdlog::info("Finished reading classifieds from riyasewana.com.");
 				reachedDataSource = true;

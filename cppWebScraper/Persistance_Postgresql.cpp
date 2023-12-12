@@ -45,6 +45,154 @@ bool Persistance_Postgresql::closeDataSource()
 	return myDB->is_open();
 }
 
+int Persistance_Postgresql::insertRecordGetPK(std::string anAtributeName, std::string anAtributeValue, std::string aTableName, std::string aPK)
+{
+	std::string insertSql{ "INSERT INTO " + aTableName + "(" + anAtributeName + ") \
+							VALUES('" + anAtributeValue + "') \
+							ON CONFLICT(" + anAtributeName + ") DO NOTHING \
+							RETURNING " + aPK };
+	int primaryKey{ -1 };
+
+	try
+	{
+		//check if there is already a city record;
+		std::string getIdSql{ "SELECT " + aPK + " FROM " + aTableName + " \
+					   WHERE " + anAtributeName + " = '" + anAtributeValue + "'" };
+		pqxx::work N{ *myDB.get() };
+		pqxx::result RCityId(N.exec(getIdSql));
+		N.commit();
+
+		if (RCityId.empty())
+		{
+			pqxx::work W{ *myDB.get() };
+			pqxx::result R(W.exec(insertSql));
+			W.commit();
+
+			if (R.empty())	//city was not inserted to table because it already exists, now get the city id
+			{
+				spdlog::error("Failed to read back city number from database.");
+				return -1;
+			}
+			else
+			{
+				primaryKey = R.begin()[0].as<int>();
+			}
+		}
+		else
+		{
+			primaryKey = RCityId.begin()[0].as<int>();
+		}
+
+	}
+	catch (const std::exception& e)
+	{
+		spdlog::error("Failed to read back city number from database. - " + std::string(e.what()));
+		return -1;
+	}
+	return primaryKey;
+}
+
+int Persistance_Postgresql::numRecordsAvailable(const std::string anAtributeName, const std::string anAtributeValue, const std::string aTableName)
+{
+	int numRecords{ 0 };
+	
+	try
+	{
+		std::string getRecordSql{ "SELECT COUNT(" + anAtributeName + ") FROM " + aTableName + " \
+					   WHERE " + anAtributeName + " = '" + anAtributeValue + "'" };
+
+		pqxx::work N{ *myDB.get() };
+		pqxx::result resultRows(N.exec(getRecordSql));
+		//N.commit();
+
+		if (!resultRows.empty())
+			numRecords = resultRows.begin()[0].as<int>();
+
+	}
+	catch (const std::exception& e)
+	{
+		spdlog::error("Failed checking for duplicates. - " + std::string(e.what()));
+		return false;
+	}
+	return numRecords;
+}
+
+std::string Persistance_Postgresql::WriteData(const Classified_Vehicle& anAd)
+{
+	if (numRecordsAvailable("vehicle_ad_url", anAd.Url(), "classifieds.vehicle_ad") > 0)
+		return "duplicate";
+
+	int cityId{ insertRecordGetPK("city", anAd.City(), "classifieds.city", "city_id")};
+	if(cityId < 0)
+		throw std::invalid_argument("Error writing classified city to database. - " + anAd.City());
+
+	int makerId{ insertRecordGetPK("vehicle_maker", anAd.Maker(),"classifieds.vehicle_maker", "vehicle_maker_id") };
+	if (makerId < 0)
+		throw std::invalid_argument("Error writing vehicle manufacturer to database. - " + anAd.Maker());
+
+	int typeId{ insertRecordGetPK("vehicle_type", anAd.Type(),"classifieds.vehicle_type", "vehicle_type_id") };
+	if (typeId < 0)
+		throw std::invalid_argument("Error writing vehicle type to database. - " + anAd.Type());
+
+	////Now get ready for writing the record 
+	try
+	{
+		//SQL string
+		std::string insertAdSql =
+			"INSERT INTO classifieds.vehicle_ad\
+		(\
+			vehicle_type_id,\
+			vehicle_maker_id,\
+			vehicle_model,\
+			vehicle_ad_year,\
+			vehicle_ad_mileage,\
+			vehicle_ad_transmission,\
+			vehicle_ad_fuel_type,\
+			vehicle_ad_engine_capacity,\
+			vehicle_ad_start_type,\
+			vehicle_ad_price,\
+			vehicle_ad_url,\
+			vehicle_ad_date,\
+			city_id,\
+			vehicle_ad_contactno,\
+			vehicle_ad_options,\
+			vehicle_ad_details\
+		)\
+		VALUES\
+		("
+			+ std::to_string(typeId) + ","
+			+ std::to_string(makerId) + ",'"
+			+ anAd.Model() + "',"
+			+ std::to_string(anAd.Year()) + ","
+			+ std::to_string(anAd.Mileage()) + ",'"
+			+ anAd.Transmission() + "','"
+			+ anAd.FuelType() + "',"
+			+ std::to_string(anAd.EngineCapacity()) + ",'"
+			+ anAd.StartType() + "','"
+			+ anAd.PriceStr() + "','"
+			+ anAd.Url() + "','"
+			+ anAd.DateStr() + "',"
+			+ std::to_string(cityId) + ",'"
+			+ anAd.ContactNo() + "','"
+			+ anAd.Options() + "','"
+			+ anAd.Details() + "'" +
+			")\
+		ON CONFLICT(vehicle_ad_url) DO NOTHING\
+		RETURNING vehicle_ad_id";
+		pqxx::work W{ *myDB.get() };
+		W.exec(insertAdSql);
+		W.commit();
+	}
+	catch (const std::exception& e)
+	{
+		spdlog::error("Failed writing to database. - " + std::string(e.what()));
+		spdlog::error("URL - " + anAd.Url());
+		return "failure";
+	}
+	
+	return "success";
+}
+
 bool Persistance_Postgresql::IsOpen()
 {
 	return myDB->is_open();
