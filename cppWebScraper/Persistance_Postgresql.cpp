@@ -47,24 +47,27 @@ bool Persistance_Postgresql::closeDataSource()
 
 int Persistance_Postgresql::insertRecordGetPK(std::string anAtributeName, std::string anAtributeValue, std::string aTableName, std::string aPK)
 {
-	std::string insertSql{ "INSERT INTO " + aTableName + "(" + anAtributeName + ") \
-							VALUES('" + anAtributeValue + "') \
-							ON CONFLICT(" + anAtributeName + ") DO NOTHING \
-							RETURNING " + aPK };
 	int primaryKey{ -1 };
 
 	try
 	{
+		pqxx::work N{ *myDB.get() };
 		//check if there is already a city record;
 		std::string getIdSql{ "SELECT " + aPK + " FROM " + aTableName + " \
-					   WHERE " + anAtributeName + " = '" + anAtributeValue + "'" };
-		pqxx::work N{ *myDB.get() };
+					   WHERE " + anAtributeName + " = '" + N.esc(anAtributeValue) + "'" };
+		
 		pqxx::result RCityId(N.exec(getIdSql));
 		N.commit();
 
 		if (RCityId.empty())
 		{
 			pqxx::work W{ *myDB.get() };
+
+			std::string insertSql{ "INSERT INTO " + aTableName + "(" + anAtributeName + ") \
+							VALUES('" + W.esc(anAtributeValue) + "') \
+							ON CONFLICT(" + anAtributeName + ") DO NOTHING \
+							RETURNING " + aPK };
+
 			pqxx::result R(W.exec(insertSql));
 			W.commit();
 
@@ -98,10 +101,11 @@ int Persistance_Postgresql::numRecordsAvailable(const std::string anAtributeName
 	
 	try
 	{
-		std::string getRecordSql{ "SELECT COUNT(" + anAtributeName + ") FROM " + aTableName + " \
-					   WHERE " + anAtributeName + " = '" + anAtributeValue + "'" };
-
 		pqxx::work N{ *myDB.get() };
+
+		std::string getRecordSql{ "SELECT COUNT(" + anAtributeName + ") FROM " + aTableName + " \
+					   WHERE " + anAtributeName + " = '" + N.esc(anAtributeValue) + "'" };
+
 		pqxx::result resultRows(N.exec(getRecordSql));
 		//N.commit();
 
@@ -122,9 +126,14 @@ std::string Persistance_Postgresql::WriteData(const Classified_Vehicle& anAd)
 	if (numRecordsAvailable("vehicle_ad_url", anAd.Url(), "classifieds.vehicle_ad") > 0)
 		return "duplicate";
 
-	int cityId{ insertRecordGetPK("city", anAd.City(), "classifieds.city", "city_id")};
-	if(cityId < 0)
-		throw std::invalid_argument("Error writing classified city to database. - " + anAd.City());
+	int cityId{ insertRecordGetPK("city_name_en", anAd.City(), "classifieds.city", "city_id")};
+	if (cityId < 0)
+	{
+		//throw std::invalid_argument("Error writing classified city to database. - " + anAd.City());
+		spdlog::error("City - " + anAd.City());
+		return "";
+	}
+		
 
 	int makerId{ insertRecordGetPK("vehicle_maker", anAd.Maker(),"classifieds.vehicle_maker", "vehicle_maker_id") };
 	if (makerId < 0)
@@ -137,6 +146,8 @@ std::string Persistance_Postgresql::WriteData(const Classified_Vehicle& anAd)
 	////Now get ready for writing the record 
 	try
 	{
+		pqxx::work W{ *myDB.get() };
+
 		//SQL string
 		std::string insertAdSql =
 			"INSERT INTO classifieds.vehicle_ad\
@@ -162,24 +173,24 @@ std::string Persistance_Postgresql::WriteData(const Classified_Vehicle& anAd)
 		("
 			+ std::to_string(typeId) + ","
 			+ std::to_string(makerId) + ",'"
-			+ anAd.Model() + "',"
+			+ W.esc(anAd.Model()) + "',"
 			+ std::to_string(anAd.Year()) + ","
 			+ std::to_string(anAd.Mileage()) + ",'"
-			+ anAd.Transmission() + "','"
-			+ anAd.FuelType() + "',"
+			+ W.esc(anAd.Transmission()) + "','"
+			+ W.esc(anAd.FuelType()) + "',"
 			+ std::to_string(anAd.EngineCapacity()) + ",'"
-			+ anAd.StartType() + "','"
-			+ anAd.PriceStr() + "','"
-			+ anAd.Url() + "','"
-			+ anAd.DateStr() + "',"
+			+ W.esc(anAd.StartType()) + "','"
+			+ W.esc(anAd.PriceStr()) + "','"
+			+ W.esc(anAd.Url()) + "','"
+			+ W.esc(anAd.DateStr()) + "',"
 			+ std::to_string(cityId) + ",'"
-			+ anAd.ContactNo() + "','"
-			+ anAd.Options() + "','"
-			+ anAd.Details() + "'" +
+			+ W.esc(anAd.ContactNo()) + "','"
+			+ W.esc(anAd.Options()) + "','"
+			+ W.esc(anAd.Details()) + "'" +
 			")\
 		ON CONFLICT(vehicle_ad_url) DO NOTHING\
 		RETURNING vehicle_ad_id";
-		pqxx::work W{ *myDB.get() };
+		
 		W.exec(insertAdSql);
 		W.commit();
 	}
