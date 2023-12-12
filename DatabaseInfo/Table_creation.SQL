@@ -8,12 +8,12 @@ CREATE TABLE classifieds.vehicle_ad (
 	vehicle_ad_id SERIAL PRIMARY KEY,
 	vehicle_type_id INT NOT NULL,
 	vehicle_maker_id INT NOT NULL,
-	vehicle_model_id INT NOT NULL,
+	vehicle_model VARCHAR(50) NOT NULL,
 	vehicle_ad_year INT,
-	vehicle_ad_mileage VARCHAR(20),
+	vehicle_ad_mileage INT,
 	vehicle_ad_transmission VARCHAR(20),
 	vehicle_ad_fuel_type VARCHAR(20),
-	vehicle_ad_engine_capacity VARCHAR(20),
+	vehicle_ad_engine_capacity INT,
 	vehicle_ad_start_type VARCHAR(20),
 	vehicle_ad_price TEXT,
 	vehicle_ad_price_num INT,
@@ -39,13 +39,6 @@ CREATE TABLE classifieds.vehicle_maker (
 	vehicle_maker_country VARCHAR(50)
 );
 
-DROP TABLE IF EXISTS classifieds.vehicle_model;
-CREATE TABLE classifieds.vehicle_model (
-	vehicle_model_id SERIAL PRIMARY KEY,
-	vehicle_model VARCHAR(50) UNIQUE NOT NULL,
-	vehicle_maker_id INT
-);
-
 DROP TABLE IF EXISTS classifieds.district;
 CREATE TABLE classifieds.district (
 	district_id SERIAL PRIMARY KEY,
@@ -60,11 +53,6 @@ CREATE TABLE classifieds.city (
 );
 
 --Folowing queries are for foreign keys
-ALTER TABLE classifieds.vehicle_model
-ADD CONSTRAINT constraint_fk_maker
-FOREIGN KEY (vehicle_maker_id)
-REFERENCES classifieds.vehicle_maker(vehicle_maker_id)
-ON DELETE CASCADE;
 
 ALTER TABLE classifieds.city
 ADD CONSTRAINT constraint_fk_district
@@ -80,10 +68,6 @@ ON DELETE CASCADE,
 ADD CONSTRAINT constraint_fk_vehicle_maker
 FOREIGN KEY (vehicle_maker_id)
 REFERENCES classifieds.vehicle_maker(vehicle_maker_id)
-ON DELETE CASCADE,
-ADD CONSTRAINT constraint_fk_vehicle_model
-FOREIGN KEY (vehicle_model_id)
-REFERENCES classifieds.vehicle_model(vehicle_model_id)
 ON DELETE CASCADE,
 ADD CONSTRAINT constraint_fk_city
 FOREIGN KEY (city_id)
