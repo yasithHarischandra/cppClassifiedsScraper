@@ -51,7 +51,10 @@ void Scraper_Riyasewana::readClassifiedListPage(const std::string& aUrl, std::ve
 	}
 
 	xmlNodePtr nextPageUrlElement = nextPageElement->nodesetval->nodeTab[0];
-	nextPage = "https:" + std::string(reinterpret_cast<char*>(xmlGetProp(nextPageUrlElement, (xmlChar*)"href")));
+	if (nextPageUrlElement == nullptr)
+		nextPage = "";
+	else 
+		nextPage = "https:" + std::string(reinterpret_cast<char*>(xmlGetProp(nextPageUrlElement, (xmlChar*)"href")));
 	
 	xmlXPathFreeObject(nextPageElement);
 	
@@ -95,8 +98,8 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	///////////////
 
 	//////////////////traverse through properties table
-	std::string contactNo, price, Make, Model, yomStr, mileageStr, gear, fuelType, options, engineCapacityStr;
-	std::string details, startType;
+	std::string contactNo, priceStr, Make, Model, yomStr, mileageStr, gear, fuelType, options, engineCapacityStr;
+	std::string details, startType, leasingStr;
 	xmlXPathObjectPtr tableRowNodes = xmlXPathEvalExpression((xmlChar*)"//tr", context);
 	for (int i = 0; i < tableRowNodes->nodesetval->nodeNr; ++i)
 	{
@@ -115,9 +118,9 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 		xmlNodePtr firstColumn = xmlXPathEvalExpression((xmlChar*)".//td/p", context)->nodesetval->nodeTab[0];
 		if (std::string(reinterpret_cast<char*>(xmlNodeGetContent(firstColumn))) == "Contact")
 		{
-			xmlXPathObjectPtr values = xmlXPathEvalExpression((xmlChar*)".//td/span", context);
-			contactNo = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[0])));
-			price = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[1])));
+			xmlXPathObjectPtr values = xmlXPathEvalExpression((xmlChar*)".//td", context);
+			contactNo = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[1])));
+			priceStr = std::string(reinterpret_cast<char*>(xmlNodeGetContent(values->nodesetval->nodeTab[3])));
 			xmlXPathFreeObject(values);
 		}
 		else if (std::string(reinterpret_cast<char*>(xmlNodeGetContent(firstColumn))) == "Make")
@@ -199,7 +202,41 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 		return nullptr;
 	}
 
-	std::unique_ptr<Classified_Base> classifiedPtr = std::make_unique<Classified_Vehicle>(price, city, contactNo, details, aUrl, date, Make, Model, yom, mileage, gear, fuelType, vehicleType, startType, options, engineCapacity);
+	//process price string
+	int price;
+	bool hasLeasing{ false };
+	{
+		std::string s;
+		std::stringstream ss{ priceStr };
+		std::vector<std::string> v;
+		while (getline(ss, s, ' ')) {
+
+			// store token string in the vector
+			v.push_back(s);
+		}
+		if (v.empty())
+		{
+			price = -1;
+			hasLeasing = false;
+		}
+		else
+		{
+			if (v.size() >= 2)
+			{
+				if (!convertFromStringToInt(v[1], price))
+				{
+					spdlog::error("Error converting price to integer - " + priceStr);
+					return nullptr;
+				}
+				if (priceStr.find("Lease") != std::string::npos)
+					hasLeasing = true;
+			}
+		}
+	}
+	
+
+	std::unique_ptr<Classified_Base> classifiedPtr = std::make_unique<Classified_Vehicle>(priceStr, city, contactNo, details, aUrl, 
+		date, Make, Model, yom, mileage, gear, fuelType, vehicleType, startType, options, engineCapacity, price, hasLeasing);
 
 	return classifiedPtr;
 }
@@ -321,7 +358,9 @@ Scraper_Riyasewana::Scraper_Riyasewana(Persistance_Base* aDataSource) : Scraper_
 void Scraper_Riyasewana::ReadSiteFrontToBack()
 {
 	auto yesterday = getYesterdayDate();
-	auto lastClassifiedDay = getLatestSavedClassifiedDate();
+	std::chrono::year_month_day lastClassifiedDay;
+	if (!myDataSource->NewestClassifiedDate(lastClassifiedDay))
+		return;
 
 	std::string currentPage{ myStartPage };
 	std::string nextPage{ myStartPage };
@@ -338,6 +377,8 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 		for (auto aUrl : urlListOfClassifieds)
 		{
 			std::shared_ptr<Classified_Base> aClassified = readSingleClassifiedPage(aUrl);
+			if (aClassified == nullptr)
+				continue;
 
 			//skip classifieds newer than yesterday
 			if (aClassified->Date() > yesterday)
@@ -359,11 +400,64 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 			saveAClassified(classifiedData.back().get());
 			classifiedData.pop_back();
 		}
+
+		if (reachedDataSource)
+			break;
 		
 	}
 
 
 	//readClassifiedListPage(myStartPage, urlListOfClassifieds, nextPage);
 	//readSingleClassifiedPage(urlListOfClassifieds[0]);
-	//readSingleClassifiedPage("https://riyasewana.com/buy/bajaj-4-stroke-sale-kurunegala-7346452");
+	//readSingleClassifiedPage("https://riyasewana.com/buy/mitsubishi-montero-sale-gampaha-7347935");
+}
+
+void Scraper_Riyasewana::ReadSiteBackToFront()
+{
+	auto yesterday = getYesterdayDate();
+	std::chrono::year_month_day lastClassifiedDay;
+	if (!myDataSource->NewestClassifiedDate(lastClassifiedDay))
+		return;
+
+	std::string currentPage{ "https://riyasewana.com/search?page=" };
+	int nextPageNum = 1538;
+	std::string nextPage{ currentPage + std::to_string(nextPageNum)};
+
+
+	while (nextPageNum > 0)
+	{
+		nextPage = currentPage + std::to_string(nextPageNum);
+		std::vector<std::string> urlListOfClassifieds;
+		std::vector < std::shared_ptr<Classified_Base> > classifiedData;
+		bool reachedDataSource = false;
+		readClassifiedListPage(nextPage, urlListOfClassifieds, nextPage);
+		nextPageNum--;
+
+		for (std::string& aUrl : urlListOfClassifieds)
+		{
+			std::shared_ptr<Classified_Base> aClassified = readSingleClassifiedPage(aUrl);
+			if (aClassified == nullptr)
+				continue;
+
+			//skip classifieds newer than yesterday
+			if (aClassified->Date() > yesterday)
+			{
+				spdlog::info("Finished reading classifieds from riyasewana.com up to yesterday.");
+				reachedDataSource = true;
+				break;
+			}
+
+			classifiedData.push_back(aClassified);
+		}
+
+		while (!classifiedData.empty())
+		{
+			saveAClassified(classifiedData.back().get());
+			classifiedData.pop_back();
+		}
+
+		if (reachedDataSource)
+			break;
+
+	}
 }
