@@ -92,6 +92,11 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	
 	xmlNodePtr h1Node = xmlXPathEvalExpression((xmlChar*)".//h1", context)->nodesetval->nodeTab[0];
 	std::string pageMainTitle = std::string(reinterpret_cast<char*>(xmlNodeGetContent(h1Node)));
+	if (pageMainTitle == "")
+	{
+		spdlog::error("Page title not found\n");
+		return nullptr;
+	}
 	xmlNodePtr h2Node = xmlXPathEvalExpression((xmlChar*)".//h2", context)->nodesetval->nodeTab[0];
 	std::string pageSubTitle = std::string(reinterpret_cast<char*>(xmlNodeGetContent(h2Node)));
 	xmlXPathFreeObject(titleDivNode);
