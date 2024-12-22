@@ -26,9 +26,11 @@ bool Scraper_Base::convertFromStringToInt(const std::string& aString, int& anInt
     catch (const std::invalid_argument& e) {
         spdlog::info( aString + "is not a number: " + std::string(e.what())); 
         anInt = -1;
+        return false;
     }
     catch (const std::out_of_range& e) {
         spdlog::error("Out of range: " + std::string(e.what()));
+        anInt = -1;
         return false;
     }
 	return true;
