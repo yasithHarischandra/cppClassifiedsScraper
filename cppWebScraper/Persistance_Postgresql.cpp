@@ -206,7 +206,10 @@ std::string Persistance_Postgresql::WriteData(const Classified_Vehicle& anAd)
 
 bool Persistance_Postgresql::IsOpen()
 {
-	return myDB->is_open();
+	if (myDB)
+		return myDB->is_open();
+	else
+		return false;
 }
 
 Persistance_Postgresql::Persistance_Postgresql(const std::string aConfigFileName) :
