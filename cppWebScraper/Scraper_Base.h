@@ -26,8 +26,6 @@ protected:
 
 	std::chrono::year_month_day getYesterdayDate();
 
-	std::chrono::year_month_day getLatestSavedClassifiedDate();
-
 	virtual void readClassifiedListPage(const std::string& aUrl, std::vector<std::string>& aListOfUrl, std::string& nextPage) = 0;
 
 	virtual std::unique_ptr<Classified_Base> readSingleClassifiedPage(const std::string& aUrl) = 0;

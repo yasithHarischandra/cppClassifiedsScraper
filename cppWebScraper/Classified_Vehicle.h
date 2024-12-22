@@ -14,11 +14,12 @@ protected:
 	std::string myType;
 	std::string myStartType;
 	std::string myOptions;
+	bool myHasLeasing;
 
 public:
 	Classified_Vehicle(std::string aPrice, std::string aCity, std::string aContactNo, std::string details, std::string aUrl, std::chrono::year_month_day aDate,
 		std::string aMake, std::string aModel, int aYoM, int aMileage, std::string aTransmission, std::string aFuelType, std::string aType, std::string aStartType, 
-		std::string options, int anEngineCapacity);
+		std::string options, int anEngineCapacity, int aPriceInt, bool hasLeasing);
 
 	std::vector<ClassifiedTableData> GetProperties() override;
 
@@ -36,8 +37,7 @@ public:
 	int EngineCapacity() const { return myEngineCapacity; };
 	std::string StartType() const { return myStartType; };
 	std::string Options() const { return myOptions; };
-	
-	
+	bool HasLeasing() const { return myHasLeasing; };
 
 };
 

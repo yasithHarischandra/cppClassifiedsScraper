@@ -65,7 +65,6 @@ int Persistance_Postgresql::insertRecordGetPK(std::string anAtributeName, std::s
 
 			std::string insertSql{ "INSERT INTO " + aTableName + "(" + anAtributeName + ") \
 							VALUES('" + W.esc(anAtributeValue) + "') \
-							ON CONFLICT(" + anAtributeName + ") DO NOTHING \
 							RETURNING " + aPK };
 
 			pqxx::result R(W.exec(insertSql));
@@ -167,7 +166,9 @@ std::string Persistance_Postgresql::WriteData(const Classified_Vehicle& anAd)
 			city_id,\
 			vehicle_ad_contactno,\
 			vehicle_ad_options,\
-			vehicle_ad_details\
+			vehicle_ad_details,\
+			vehicle_ad_price_num,\
+			vehicle_ad_ongoing_leasing\
 		)\
 		VALUES\
 		("
@@ -186,8 +187,10 @@ std::string Persistance_Postgresql::WriteData(const Classified_Vehicle& anAd)
 			+ std::to_string(cityId) + ",'"
 			+ W.esc(anAd.ContactNo()) + "','"
 			+ W.esc(anAd.Options()) + "','"
-			+ W.esc(anAd.Details()) + "'" +
-			")\
+			+ W.esc(anAd.Details()) + "',"
+			+ std::to_string(anAd.Price()) + ","
+			+ (anAd.HasLeasing() ? "TRUE" : "FALSE")\
+			+ ")\
 		ON CONFLICT(vehicle_ad_url) DO NOTHING\
 		RETURNING vehicle_ad_id";
 		
@@ -210,6 +213,46 @@ bool Persistance_Postgresql::IsOpen()
 		return myDB->is_open();
 	else
 		return false;
+}
+
+bool Persistance_Postgresql::NewestClassifiedDate(std::chrono::year_month_day& aDate)
+{
+	try
+	{
+		pqxx::work N{ *myDB.get() };
+
+		std::string getRecordSql{ 
+			"SELECT vehicle_ad_date\
+				FROM classifieds.vehicle_ad\
+			 ORDER BY vehicle_ad_date DESC\
+				 LIMIT 1; " };
+
+		pqxx::result resultRows(N.exec(getRecordSql));
+		//N.commit();
+
+		if (!resultRows.empty())
+		{
+			auto dayStr = resultRows.begin()[0].as<std::string>();
+
+			std::string s;
+			std::stringstream ss{ dayStr };
+			std::vector<std::string> v;
+			while (getline(ss, s, '-'))
+				v.push_back(s);
+			aDate = std::chrono::year_month_day(static_cast<std::chrono::year>(atoi(v[0].c_str())), static_cast<std::chrono::month>(atoi(v[1].c_str())), static_cast<std::chrono::day>(atoi(v[2].c_str())));
+		}
+		else
+		{
+			spdlog::info("Data source is empty. Returning 0th day as the newest classified date.");
+			aDate = std::chrono::year_month_day(std::chrono::sys_days{});
+		}
+	}
+	catch (const std::exception& e)
+	{
+		spdlog::error("Failed getting newest classified date. - " + std::string(e.what()));
+		return false;
+	}
+	return true;
 }
 
 Persistance_Postgresql::Persistance_Postgresql(const std::string aConfigFileName) :

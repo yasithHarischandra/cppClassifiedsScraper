@@ -19,5 +19,7 @@ public:
 	Scraper_Riyasewana(Persistance_Base* aDataSource);
 
 	void ReadSiteFrontToBack() override;
+
+	void ReadSiteBackToFront();
 };
 

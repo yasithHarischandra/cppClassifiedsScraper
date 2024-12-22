@@ -24,5 +24,9 @@ public:
 	virtual bool IsOpen();
 
 	virtual std::string WriteData(const Classified_Vehicle& anAd) = 0;
+
+	//returns the day of the newest classified in the data source
+	//return sysdays{0} if there is no classifieds saved
+	virtual bool NewestClassifiedDate(std::chrono::year_month_day& aDate) = 0;
 };
 
