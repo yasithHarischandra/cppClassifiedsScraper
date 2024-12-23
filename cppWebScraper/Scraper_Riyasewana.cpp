@@ -409,6 +409,7 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 		if (reachedDataSource)
 			break;
 		
+		currentPage = nextPage;
 	}
 
 
