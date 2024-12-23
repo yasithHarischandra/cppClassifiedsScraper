@@ -24,7 +24,7 @@ bool Scraper_Base::convertFromStringToInt(const std::string& aString, int& anInt
         anInt = std::stoi(str);
     }
     catch (const std::invalid_argument& e) {
-        spdlog::info( aString + "is not a number: " + std::string(e.what())); 
+        spdlog::info( "\"" + aString + "\"" + " is not a number: " + std::string(e.what()));
         anInt = -1;
         return false;
     }
