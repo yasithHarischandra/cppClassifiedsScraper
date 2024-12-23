@@ -191,19 +191,19 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	int yom, mileage, engineCapacity;
 	if (!convertFromStringToInt(yomStr, yom))
 	{
-		spdlog::error("Error converting YOM to integer - " + yomStr);
+		spdlog::warn("Error converting YOM to integer - " + yomStr);
 		return nullptr;
 	}
 		
 	if (!convertFromStringToInt(mileageStr, mileage))
 	{
-		spdlog::error("Error converting mileage to integer - " + mileageStr);
+		spdlog::warn("Error converting mileage to integer - " + mileageStr);
 		return nullptr;
 	}
 
 	if (!convertFromStringToInt(engineCapacityStr, engineCapacity))
 	{
-		spdlog::error("Error converting engine capacity to integer - " + engineCapacityStr);
+		spdlog::warn("Error converting engine capacity to integer - " + engineCapacityStr);
 		return nullptr;
 	}
 
@@ -230,7 +230,7 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 			{
 				if (!convertFromStringToInt(v[1], price))
 				{
-					spdlog::error("Error converting price to integer - " + priceStr);
+					spdlog::warn("Error converting price to integer - " + priceStr);
 					return nullptr;
 				}
 				if (priceStr.find("Lease") != std::string::npos)
@@ -426,7 +426,7 @@ void Scraper_Riyasewana::ReadSiteBackToFront()
 		return;
 
 	std::string currentPage{ "https://riyasewana.com/search?page=" };
-	int nextPageNum = 1538;
+	int nextPageNum = 1575;
 	std::string nextPage{ currentPage + std::to_string(nextPageNum)};
 
 
