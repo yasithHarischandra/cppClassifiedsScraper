@@ -18,8 +18,8 @@ int main()
         return -1;
     auto aWebScraper = std::make_unique<Scraper_Riyasewana>(aDataSource.get());
 
-    //aWebScraper->ReadSiteFrontToBack();
-    aWebScraper->ReadSiteBackToFront();
+    aWebScraper->ReadSiteFrontToBack();
+    //aWebScraper->ReadSiteBackToFront();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
