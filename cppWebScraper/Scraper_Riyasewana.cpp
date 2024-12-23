@@ -78,7 +78,7 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 
 	///////////////find the titles of the page
 	xmlXPathObjectPtr titleDivNode = xmlXPathEvalExpression((xmlChar*)"//div[contains(@id, 'content')]", context);
-	if (titleDivNode == NULL)
+	if (titleDivNode == NULL || titleDivNode->nodesetval->nodeNr == 0)
 	{
 		spdlog::error("Page title not found\n");
 		return nullptr;
