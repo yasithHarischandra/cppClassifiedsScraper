@@ -249,7 +249,10 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 bool Scraper_Riyasewana::saveAClassified(const Classified_Base* aclassified)
 {
 	std::string msg{ aclassified->write(myDataSource) };
-	return true;;
+	if (msg == "success")
+		return true;
+	else
+		return false;
 }
 
 std::string Scraper_Riyasewana::getCityFromTitle(const std::string& aTitle)
@@ -369,7 +372,7 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 
 	std::string currentPage{ myStartPage };
 	std::string nextPage{ myStartPage };
-	
+	int numTotalClassifiedsRead{ 0 }, numTotalClassifiedsSaved{ 0 };
 
 	while (nextPage != "")
 	{
@@ -385,6 +388,7 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 			if (aClassified == nullptr)
 				continue;
 
+			numTotalClassifiedsRead++;
 			//skip classifieds newer than yesterday
 			if (aClassified->Date() > yesterday)
 				continue;
@@ -402,7 +406,9 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 
 		while (!classifiedData.empty())
 		{
-			saveAClassified(classifiedData.back().get());
+			if (saveAClassified(classifiedData.back().get()))
+				numTotalClassifiedsSaved++;
+
 			classifiedData.pop_back();
 		}
 
@@ -412,6 +418,8 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 		currentPage = nextPage;
 	}
 
+	spdlog::info("Total classifieds read - " + std::to_string(numTotalClassifiedsRead));
+	spdlog::info("Total classifieds saved - " + std::to_string(numTotalClassifiedsSaved));
 
 	//readClassifiedListPage(myStartPage, urlListOfClassifieds, nextPage);
 	//readSingleClassifiedPage(urlListOfClassifieds[0]);
