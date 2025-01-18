@@ -28,5 +28,8 @@ public:
 	//returns the day of the newest classified in the data source
 	//return sysdays{0} if there is no classifieds saved
 	virtual bool NewestClassifiedDate(std::chrono::year_month_day& aDate) = 0;
+
+	//returns number of classifieds in the data source
+	virtual int TotalClassifieds() = 0;
 };
 

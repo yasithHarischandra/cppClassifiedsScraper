@@ -255,6 +255,36 @@ bool Persistance_Postgresql::NewestClassifiedDate(std::chrono::year_month_day& a
 	return true;
 }
 
+int Persistance_Postgresql::TotalClassifieds()
+{
+	int classifiedCount = 0;
+	try
+	{
+		pqxx::work N{ *myDB.get() };
+
+		std::string getRecordSql{
+			"SELECT COUNT(*) AS total_records\
+				FROM classifieds.vehicle_ad;" };
+
+		pqxx::result resultRows(N.exec(getRecordSql));
+		//N.commit();
+
+		if (!resultRows.empty())
+		{
+			classifiedCount = resultRows.begin()[0].as<int>();
+		}
+		else
+		{
+			spdlog::info("No classifieds found!");
+		}
+	}
+	catch (const std::exception& e)
+	{
+		spdlog::error("Failed getting number of saved classifieds. - " + std::string(e.what()));
+	}
+	return classifiedCount;
+}
+
 Persistance_Postgresql::Persistance_Postgresql(const std::string aConfigFileName) :
 	Persistance_Database()
 {

@@ -23,6 +23,7 @@ public:
     std::string WriteData(const Classified_Vehicle& anAd) override;
     bool IsOpen() override;
     bool NewestClassifiedDate(std::chrono::year_month_day& aDate) override;
+    int TotalClassifieds() override;
     Persistance_Postgresql(const std::string aConfigFileName);
     ~Persistance_Postgresql();
 };

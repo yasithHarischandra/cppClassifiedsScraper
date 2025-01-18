@@ -374,6 +374,8 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 	std::string nextPage{ myStartPage };
 	int numTotalClassifiedsRead{ 0 }, numTotalClassifiedsSaved{ 0 };
 
+	spdlog::info("Number of saved classifieds - " + std::to_string(myDataSource->TotalClassifieds()));
+
 	while (nextPage != "")
 	{
 		std::vector<std::string> urlListOfClassifieds;
@@ -420,6 +422,7 @@ void Scraper_Riyasewana::ReadSiteFrontToBack()
 
 	spdlog::info("Total classifieds read - " + std::to_string(numTotalClassifiedsRead));
 	spdlog::info("Total classifieds saved - " + std::to_string(numTotalClassifiedsSaved));
+	spdlog::info("Total classifieds in the data source - " + std::to_string(myDataSource->TotalClassifieds()));
 
 	//readClassifiedListPage(myStartPage, urlListOfClassifieds, nextPage);
 	//readSingleClassifiedPage(urlListOfClassifieds[0]);
