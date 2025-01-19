@@ -89,15 +89,27 @@ std::unique_ptr<Classified_Base> Scraper_Riyasewana::readSingleClassifiedPage(co
 	// to limit the XPath selectors to its children
 	xmlXPathSetContextNode(classified_html_element, context);
 
-	
-	xmlNodePtr h1Node = xmlXPathEvalExpression((xmlChar*)".//h1", context)->nodesetval->nodeTab[0];
+	xmlXPathObjectPtr h1NodePathObjectPtr = xmlXPathEvalExpression((xmlChar*)".//h1", context);
+	if (h1NodePathObjectPtr == nullptr || h1NodePathObjectPtr->nodesetval->nodeNr < 1)
+	{
+		spdlog::error("Page title not found\n");
+		return nullptr;
+	}
+	xmlNodePtr h1Node = h1NodePathObjectPtr->nodesetval->nodeTab[0];
 	std::string pageMainTitle = std::string(reinterpret_cast<char*>(xmlNodeGetContent(h1Node)));
 	if (pageMainTitle == "")
 	{
 		spdlog::error("Page title not found\n");
 		return nullptr;
 	}
-	xmlNodePtr h2Node = xmlXPathEvalExpression((xmlChar*)".//h2", context)->nodesetval->nodeTab[0];
+
+	xmlXPathObjectPtr h2NodePathObjectPtr = xmlXPathEvalExpression((xmlChar*)".//h2", context);
+	if (h2NodePathObjectPtr == nullptr || h2NodePathObjectPtr->nodesetval->nodeNr < 1)
+	{
+		spdlog::error("Page sub title not found\n");
+		return nullptr;
+	}
+	xmlNodePtr h2Node = h2NodePathObjectPtr->nodesetval->nodeTab[0];
 	std::string pageSubTitle = std::string(reinterpret_cast<char*>(xmlNodeGetContent(h2Node)));
 	xmlXPathFreeObject(titleDivNode);
 	///////////////
